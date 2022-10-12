@@ -267,6 +267,11 @@ class PriceService:
         ):
             return self.get_cronos_usd_price()
         elif self.ethereum_network in (
+            EthereumNetwork.TLOS,
+            EthereumNetwork.TLOS_TESTNET
+        ):
+            return self.get_telos_usd_price()
+        elif self.ethereum_network in (
             EthereumNetwork.FUSE_MAINNET,
             EthereumNetwork.FUSE_SPARKNET,
         ):
