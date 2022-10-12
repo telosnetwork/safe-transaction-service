@@ -3,7 +3,7 @@ import logging
 from typing import Any, Dict, Tuple
 
 from django.conf import settings
-from django.db.models import Count, Min
+from django.db.models import Count
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 
@@ -50,6 +50,7 @@ from .models import (
 from .serializers import get_data_decoded_from_data
 from .services import (
     BalanceServiceProvider,
+    IndexServiceProvider,
     SafeServiceProvider,
     TransactionServiceProvider,
 )
@@ -149,29 +150,32 @@ class AboutEthereumTracingRPCView(AboutEthereumRPCView):
 
 
 class ERC20IndexingView(GenericAPIView):
-    serializer_class = serializers.ERC20IndexingSerializer
+    serializer_class = serializers.ERC20IndexingStatusSerializer
+    pagination_class = None  # Don't show limit/offset in swagger
 
+    @method_decorator(cache_page(15))  # 15 seconds
     def get(self, request):
         """
         Get current indexing status for ERC20/721 events
         """
-        current_block_number = EthereumClientProvider().current_block_number
-        min_erc20_block_number = SafeContract.objects.aggregate(
-            min_erc20_block_number=Min("erc20_block_number")
-        )["min_erc20_block_number"]
-        if min_erc20_block_number is None:  # Still nothing indexed
-            min_erc20_block_number = current_block_number
-        synced = (
-            current_block_number - min_erc20_block_number
-        ) <= settings.ETH_REORG_BLOCKS
+        index_service = IndexServiceProvider()
 
-        serializer = self.get_serializer(
-            {
-                "current_block_number": current_block_number,
-                "minimum_indexed_block_number": min_erc20_block_number,
-                "synced": synced,
-            }
-        )
+        serializer = self.get_serializer(index_service.get_erc20_indexing_status())
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class IndexingView(GenericAPIView):
+    serializer_class = serializers.IndexingStatusSerializer
+    pagination_class = None  # Don't show limit/offset in swagger
+
+    @method_decorator(cache_page(15))  # 15 seconds
+    def get(self, request):
+        """
+        Get current indexing status for ERC20/721 events
+        """
+        index_service = IndexServiceProvider()
+
+        serializer = self.get_serializer(index_service.get_indexing_status())
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
@@ -557,6 +561,7 @@ def swagger_safe_balance_schema(serializer_class):
 
 class SafeBalanceView(GenericAPIView):
     serializer_class = serializers.SafeBalanceResponseSerializer
+    pagination_class = None  # Don't show limit/offset in swagger
 
     def get_parameters(self) -> Tuple[bool, bool]:
         """
@@ -965,6 +970,7 @@ class SafeIncomingTransferListView(SafeTransferListView):
 
 class SafeCreationView(GenericAPIView):
     serializer_class = serializers.SafeCreationInfoResponseSerializer
+    pagination_class = None  # Don't show limit/offset in swagger
 
     @swagger_auto_schema(
         responses={
@@ -1000,6 +1006,7 @@ class SafeCreationView(GenericAPIView):
 
 class SafeInfoView(GenericAPIView):
     serializer_class = serializers.SafeInfoResponseSerializer
+    pagination_class = None  # Don't show limit/offset in swagger
 
     @swagger_auto_schema(
         responses={
@@ -1043,6 +1050,7 @@ class SafeInfoView(GenericAPIView):
 
 class ModulesView(GenericAPIView):
     serializer_class = serializers.ModulesResponseSerializer
+    pagination_class = None  # Don't show limit/offset in swagger
 
     @swagger_auto_schema(
         responses={
@@ -1073,6 +1081,7 @@ class ModulesView(GenericAPIView):
 
 class OwnersView(GenericAPIView):
     serializer_class = serializers.OwnerResponseSerializer
+    pagination_class = None  # Don't show limit/offset in swagger
 
     @swagger_auto_schema(
         responses={
