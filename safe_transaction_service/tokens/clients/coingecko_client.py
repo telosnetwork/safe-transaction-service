@@ -34,7 +34,7 @@ class CoingeckoClient(BaseHTTPClient):
         EthereumNetwork.POLYGON_ZKEVM: "polygon-zkevm",
         EthereumNetwork.CELO_MAINNET: "celo",
         EthereumNetwork.METER_MAINNET: "meter",
-        EthereumNetwork.TLOS: "telos",
+        EthereumNetwork.TELOS_EVM_MAINNET: "telos",
     }
     base_url = "https://api.coingecko.com/"
 

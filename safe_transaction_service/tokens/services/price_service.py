@@ -267,8 +267,8 @@ class PriceService:
         ):
             return self.get_cronos_usd_price()
         elif self.ethereum_network in (
-            EthereumNetwork.TLOS,
-            EthereumNetwork.TLOS_TESTNET
+            EthereumNetwork.TELOS_EVM_MAINNET,
+            EthereumNetwork.TELOS_EVM_TESTNET
         ):
             return self.get_telos_usd_price()
         elif self.ethereum_network in (
@@ -313,8 +313,6 @@ class PriceService:
             EthereumNetwork.FANTOM_TESTNET,
         ):
             return self.get_ftm_usd_price()
-        elif self.ethereum_network == EthereumNetwork.TLOS:
-            return self.get_telos_usd_price()
         else:
             return self.get_ether_usd_price()
 
